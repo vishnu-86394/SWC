@@ -1,96 +1,487 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Waste Management UI</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Waste Management – Collections</title>
+  <meta name="description" content="Smart waste management project: collections overview, schedules, accepted materials, and pickup requests." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f4f8f4;
-      color: #333;
+    :root{
+      --bg:#0e1116;
+      --card:#151a22;
+      --muted:#9aa4b2;
+      --text:#e8eef9;
+      --brand:#32d583;     /* green */
+      --brand-2:#2e90fa;   /* blue */
+      --accent:#fdb022;    /* amber */
+      --red:#f04438;
+      --radius:18px;
+      --shadow:0 10px 25px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
     }
-    header {
-      background: #2e7d32;
-      color: white;
-      text-align: center;
-      padding: 15px;
-      font-size: 22px;
-      font-weight: bold;
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 700px at 80% -10%, rgba(50,213,131,.08), transparent 60%),
+                  radial-gradient(1000px 600px at -10% -10%, rgba(46,144,250,.08), transparent 60%),
+                  var(--bg);
+      color:var(--text);
+      line-height:1.6;
     }
-    .container {
-      padding: 20px;
+    a{color:var(--brand-2); text-decoration:none}
+    header{
+      position:sticky; top:0; z-index:30;
+      backdrop-filter:saturate(140%) blur(8px);
+      background:rgba(14,17,22,.7);
+      border-bottom:1px solid rgba(255,255,255,.06);
     }
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      margin: 15px 0;
-      box-shadow: 0px 4px 8px rgba(0,0,0,0.1);
-      transition: 0.3s;
+    .container{max-width:1100px; margin:0 auto; padding:0 18px}
+    .nav{display:flex; align-items:center; justify-content:space-between; padding:14px 0}
+    .brand{display:flex; gap:10px; align-items:center; font-weight:800; letter-spacing:.3px}
+    .brand .logo{width:36px; height:36px; border-radius:12px; display:grid; place-items:center; background:linear-gradient(135deg, var(--brand), var(--brand-2)); box-shadow: var(--shadow)}
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; background:rgba(255,255,255,.06); color:var(--muted); font-weight:600; font-size:.9rem}
+
+    /* Hero */
+    .hero{padding:56px 0 28px}
+    .hero-grid{display:grid; grid-template-columns:1.2fr .8fr; gap:26px}
+    .hero h1{font-size:clamp(28px, 4.2vw, 44px); line-height:1.15; margin:0 0 10px}
+    .hero p{color:var(--muted); margin:0}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02)); border:1px solid rgba(255,255,255,.08); border-radius:var(--radius); box-shadow:var(--shadow)}
+    .card.pad{padding:20px}
+    .tagrow{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px}
+    .tag{padding:6px 10px; background:rgba(50,213,131,.12); border:1px solid rgba(50,213,131,.35); color:#b6f7d2; border-radius:999px; font-weight:600; font-size:.85rem}
+
+    /* Sections */
+    section{padding:28px 0}
+    h2{font-size:clamp(20px, 3.1vw, 28px); margin:0 0 14px}
+    .grid{display:grid; gap:16px}
+    .grid.cols-3{grid-template-columns: repeat(3, minmax(0,1fr))}
+    .grid.cols-2{grid-template-columns: repeat(2, minmax(0,1fr))}
+
+    /* Info cards */
+    .info{display:flex; gap:12px}
+    .info svg{flex:0 0 32px}
+    .muted{color:var(--muted)}
+
+    /* Table */
+    table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border-radius:14px; border:1px solid rgba(255,255,255,.08)}
+    th, td{padding:12px 14px; text-align:left}
+    thead th{font-size:.95rem; color:#dbe7ff; background:rgba(255,255,255,.06)}
+    tbody tr:nth-child(even){background:rgba(255,255,255,.03)}
+    .badge{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; background:rgba(255,255,255,.06); border-radius:999px; font-weight:600; font-size:.85rem}
+    .badge.dot::before{content:""; width:8px; height:8px; border-radius:50%; background:currentColor}
+
+    /* Form */
+    form{display:grid; gap:12px}
+    .row{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
+    label{font-weight:600; font-size:.92rem}
+    input, select, textarea{
+      width:100%; padding:12px 12px; background:rgba(255,255,255,.06); color:var(--text);
+      border:1px solid rgba(255,255,255,.12); border-radius:12px; outline:none;
     }
-    .card:hover {
-      transform: scale(1.02);
+    input:focus, select:focus, textarea:focus{border-color:var(--brand-2); box-shadow:0 0 0 3px rgba(46,144,250,.25)}
+    button{
+      appearance:none; border:0; cursor:pointer; font-weight:800; letter-spacing:.2px;
+      padding:12px 16px; border-radius:14px; color:#04120b; background:linear-gradient(135deg, var(--brand), #86efac);
+      box-shadow:var(--shadow);
     }
-    .card h2 {
-      margin: 0;
-      font-size: 20px;
-      color: #2e7d32;
-    }
-    .card p {
-      font-size: 14px;
-      color: #555;
-    }
-    nav {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      display: flex;
-      justify-content: space-around;
-      background: #2e7d32;
-      padding: 10px 0;
-    }
-    nav a {
-      color: white;
-      text-decoration: none;
-      font-size: 16px;
-    }
+    .ghost{background:transparent; color:var(--text); border:1px solid rgba(255,255,255,.16)}
+
+    /* Footer */
+    footer{margin-top:26px; padding:26px 0 40px; color:var(--muted)}
+
+    /* Responsive */
+    @media (max-width: 900px){ .hero-grid{grid-template-columns:1fr} .grid.cols-3{grid-template-columns:1fr 1fr}}
+    @media (max-width: 640px){ .row{grid-template-columns:1fr} .grid.cols-3{grid-template-columns:1fr} }
   </style>
 </head>
 <body>
+  <header>
+    <div class="container nav">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">
+          <!-- leaf logo -->
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20.5 3.5C14 3 9 6 6 10.5C3 15 3 20 3 20C3 20 8.5 20.5 12.5 18C16.5 15.5 21 10 20.5 3.5Z" stroke="white" stroke-width="2"/>
+            <path d="M9 15C9 15 11 12 15 10" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <span>Smart Waste • Collections</span>
+      </div>
+      <span class="pill">On‑time • Clean • Recyclable</span>
+    </div>
+  </header>
 
-<header>🌱 Waste Management</header>
+  <main class="container">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="card pad">
+          <h1>Waste Collections for Homes, Apartments & Businesses</h1>
+          <p>Set out the right bin on the right day. Request on‑demand pickups, track schedules, and learn what materials go where.</p>
+          <div class="tagrow">
+            <span class="tag">Door‑to‑Door</span>
+            <span class="tag">IoT Tracking Ready</span>
+            <span class="tag">Segregation First</span>
+            <span class="tag">24×7 Support</span>
+          </div>
+        </div>
+        <div class="card pad">
+          <h2>Next Collection</h2>
+          <div class="info">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M8 2v4M16 2v4M3 9h18M5 13h4M5 17h4M15 13h4M15 17h4" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+            <p class="muted">Pick your ward/area and waste stream to see the next pickup date.</p>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <div>
+              <label for="area">Ward / Area</label>
+              <select id="area">
+                <option value="A">Ward A – Central</option>
+                <option value="B">Ward B – North</option>
+                <option value="C">Ward C – South</option>
+              </select>
+            </div>
+            <div>
+              <label for="stream">Waste Stream</label>
+              <select id="stream">
+                <option value="organic">Organic (Wet)</option>
+                <option value="recyclables">Recyclables (Dry)</option>
+                <option value="reject">Reject / Sanitary</option>
+                <option value="bulk">Bulk / E‑Waste</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <button id="calcBtn">Show Next Pickup</button>
+            <button class="ghost" id="addToCalendarBtn" disabled>Add to Calendar</button>
+          </div>
+          <p id="result" class="muted" style="margin-top:6px"></p>
+        </div>
+      </div>
+    </section>
 
-<div class="container">
-  <div class="card">
-    <h2>Request Pickup</h2>
-    <p>Schedule a garbage pickup from your location.</p>
-  </div>
+    <!-- WHAT WE COLLECT -->
+    <section>
+      <h2>What We Collect</h2>
+      <div class="grid cols-3">
+        <div class="card pad">
+          <div class="info">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 7h16M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V5a3 3 0 0 1 3-3v0a3 3 0 0 1 3 3v2" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+            <div>
+              <h3 style="margin:0">Organic (Green Bin)</h3>
+              <p class="muted" style="margin:.25rem 0 0">Food scraps, peels, garden waste. No plastic, glass, or metal.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card pad">
+          <div class="info">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2l7 4v6c0 5-3 8-7 10C8 20 5 17 5 12V6l7-4Z" stroke="white" stroke-width="2"/></svg>
+            <div>
+              <h3 style="margin:0">Recyclables (Blue Bin)</h3>
+              <p class="muted" style="margin:.25rem 0 0">Clean paper, cardboard, plastic bottles, cans. Rinse before set‑out.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card pad">
+          <div class="info">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 4h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="white" stroke-width="2"/><path d="M9 9h6M9 13h6" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+            <div>
+              <h3 style="margin:0">Reject & Sanitary (Red Bin)</h3>
+              <p class="muted" style="margin:.25rem 0 0">Diapers, sanitary pads, contaminated items. Bag securely.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-  <div class="card">
-    <h2>Track Truck</h2>
-    <p>See the live location of the garbage truck.</p>
-  </div>
+    <!-- SCHEDULE OVERVIEW -->
+    <section>
+      <h2>Ward‑wise Schedule Overview</h2>
+      <div class="card" style="overflow:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>Ward</th>
+              <th>Organic</th>
+              <th>Recyclables</th>
+              <th>Reject</th>
+              <th>Bulk / E‑Waste</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge dot" style="color:var(--brand)">A – Central</span></td>
+              <td>Mon • Wed • Fri</td>
+              <td>Tue • Thu</td>
+              <td>Daily</td>
+              <td>1st & 3rd Saturday</td>
+            </tr>
+            <tr>
+              <td><span class="badge dot" style="color:var(--brand)">B – North</span></td>
+              <td>Tue • Thu • Sat</td>
+              <td>Mon • Wed</td>
+              <td>Daily</td>
+              <td>2nd & 4th Saturday</td>
+            </tr>
+            <tr>
+              <td><span class="badge dot" style="color:var(--brand)">C – South</span></td>
+              <td>Mon • Thu</td>
+              <td>Tue • Fri</td>
+              <td>Daily</td>
+              <td>Alternate Fridays</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-  <div class="card">
-    <h2>Collection Schedule</h2>
-    <p>Check your area’s collection timings.</p>
-  </div>
+    <!-- HOW IT WORKS -->
+    <section>
+      <h2>How Collection Works</h2>
+      <div class="grid cols-3">
+        <div class="card pad"><strong>1) Segregate</strong><p class="muted">Keep wet, dry, and reject waste separate at source. Use labeled bins.</p></div>
+        <div class="card pad"><strong>2) Set‑out by 7 AM</strong><p class="muted">Place bins at curb/collection point before the vehicle arrives.</p></div>
+        <div class="card pad"><strong>3) Smart Tracking</strong><p class="muted">GPS‑enabled vehicles & QR‑coded bins confirm on‑time pickup.</p></div>
+      </div>
+    </section>
 
-  <div class="card">
-    <h2>Rewards & Tips</h2>
-    <p>Earn points for proper segregation & learn eco-friendly habits.</p>
-  </div>
-</div>
+    <!-- REQUEST PICKUP -->
+    <section>
+      <div class="grid cols-2">
+        <div class="card pad">
+          <h2>Request a Pickup</h2>
+          <form id="pickupForm" novalidate>
+            <div class="row">
+              <div>
+                <label for="name">Full Name</label>
+                <input id="name" name="name" required placeholder="e.g., Riya Sharma" />
+              </div>
+              <div>
+                <label for="phone">Phone</label>
+                <input id="phone" name="phone" type="tel" required placeholder="10‑digit number" pattern="^[0-9]{10}$" />
+              </div>
+            </div>
+            <label for="address">Address</label>
+            <textarea id="address" name="address" rows="3" required placeholder="House/Flat, Street, Landmark"></textarea>
+            <div class="row">
+              <div>
+                <label for="type">Waste Type</label>
+                <select id="type" name="type" required>
+                  <option value="Organic">Organic</option>
+                  <option value="Recyclables">Recyclables</option>
+                  <option value="Reject">Reject/Sanitary</option>
+                  <option value="Bulk">Bulk/E‑Waste</option>
+                </select>
+              </div>
+              <div>
+                <label for="qty">Approx. Quantity</label>
+                <select id="qty" name="qty">
+                  <option>&lt; 10 kg</option>
+                  <option>10–25 kg</option>
+                  <option>25–50 kg</option>
+                  <option>&gt; 50 kg</option>
+                </select>
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <label for="date">Preferred Date</label>
+                <input id="date" name="date" type="date" required />
+              </div>
+              <div>
+                <label for="time">Time Window</label>
+                <select id="time" name="time">
+                  <option>6–8 AM</option>
+                  <option>8–10 AM</option>
+                  <option>5–7 PM</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit">Submit Request</button>
+            <p id="formMsg" class="muted"></p>
+          </form>
+        </div>
 
-<nav>
-  <a href="#">🏠 Home</a>
-  <a href="#">📍 Request</a>
-  <a href="#">🚛 Track</a>
-  <a href="#">👤 Profile</a>
-</nav>
+        <div class="card pad">
+          <h2>Set‑out Guidelines</h2>
+          <ul class="muted">
+            <li>Rinse bottles & cans. Flatten cardboard.</li>
+            <li>Bag sanitary waste separately in red bags.</li>
+            <li>No leaking liquids or hazardous chemicals.</li>
+            <li>Bundle e‑waste and label with device types.</li>
+            <li>Keep pets away during collection window.</li>
+          </ul>
+          <h3 style="margin-top:18px">Missed Pickup?</h3>
+          <p class="muted">If your bin was missed, request a re‑visit using the form or call our helpline. You can also drop a pin on our service map (coming soon).</p>
+        </div>
+      </div>
+    </section>
 
+    <!-- FAQ -->
+    <section>
+      <h2>FAQ</h2>
+      <div class="grid cols-2">
+        <div class="card pad">
+          <strong>Do I need to compost at home?</strong>
+          <p class="muted">Not necessary. We compost organic waste at our facility. Home composting is encouraged but optional.</p>
+        </div>
+        <div class="card pad">
+          <strong>What if my bin is damaged?</strong>
+          <p class="muted">Raise a ticket via the form with photos. We repair/replace within 72 hours for subscribed users.</p>
+        </div>
+        <div class="card pad">
+          <strong>Can businesses schedule night pickups?</strong>
+          <p class="muted">Yes. Night windows (9–11 PM) are available for commercial streets. Mention in the notes field.</p>
+        </div>
+        <div class="card pad">
+          <strong>Do you collect hazardous waste?</strong>
+          <p class="muted">No. Contact authorized facilities for chemicals, paints, or biomedical waste.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="container">
+      <div class="grid cols-3">
+        <div>
+          <strong>Smart Waste – Collections</strong>
+          <p class="muted">Making cities cleaner with data‑driven scheduling and citizen‑first services.</p>
+        </div>
+        <div>
+          <strong>Support</strong>
+          <p class="muted">WhatsApp/Helpline: +91‑90000‑00000<br/>Email: support@smartwaste.local</p>
+        </div>
+        <div>
+          <strong>Follow</strong>
+          <p class="muted">Twitter • Instagram • LinkedIn</p>
+        </div>
+      </div>
+      <p class="muted" style="margin-top:8px">© <span id="year"></span> Smart Waste. All rights reserved.</p>
+    </footer>
+  </main>
+
+  <script>
+    // Utility: find next weekday from an array of days [0=Sun..6=Sat]
+    function nextWeekday(days){
+      const now = new Date();
+      for(let i=0;i<14;i++){
+        const d = new Date(now);
+        d.setDate(now.getDate()+i);
+        if(days.includes(d.getDay())) return d;
+      }
+      return null;
+    }
+
+    // Simple mock schedule per ward & stream
+    const schedule = {
+      A:{
+        organic:[1,3,5],        // Mon Wed Fri
+        recyclables:[2,4],      // Tue Thu
+        reject:[0,1,2,3,4,5,6], // Daily
+        bulk:"1st&3rdSat"
+      },
+      B:{
+        organic:[2,4,6],
+        recyclables:[1,3],
+        reject:[0,1,2,3,4,5,6],
+        bulk:"2nd&4thSat"
+      },
+      C:{
+        organic:[1,4],
+        recyclables:[2,5],
+        reject:[0,1,2,3,4,5,6],
+        bulk:"AltFri"
+      }
+    };
+
+    function nextBulk(rule){
+      const now = new Date();
+      const month = now.getMonth();
+      const year = now.getFullYear();
+      const dates=[];
+      // helper to get nth weekday of month (Sat=6, Fri=5)
+      function nthWeekday(n, weekday){
+        const d = new Date(year, month, 1);
+        let count = 0;
+        while(d.getMonth()===month){
+          if(d.getDay()===weekday){
+            count++;
+            if(count===n) return new Date(d);
+          }
+          d.setDate(d.getDate()+1);
+        }
+        return null;
+      }
+      if(rule==="1st&3rdSat") dates.push(nthWeekday(1,6), nthWeekday(3,6));
+      if(rule==="2nd&4thSat") dates.push(nthWeekday(2,6), nthWeekday(4,6));
+      if(rule==="AltFri"){
+        // find first Friday, then +14 days
+        const firstFri = nthWeekday(1,5);
+        dates.push(firstFri, new Date(firstFri.getFullYear(), firstFri.getMonth(), firstFri.getDate()+14));
+      }
+      const nowMid = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const next = dates.filter(Boolean).find(d=>d>=nowMid) || dates[0];
+      return next;
+    }
+
+    const areaEl = document.getElementById('area');
+    const streamEl = document.getElementById('stream');
+    const resultEl = document.getElementById('result');
+    const addToCalendarBtn = document.getElementById('addToCalendarBtn');
+
+    function formatDate(d){
+      return d.toLocaleDateString(undefined,{weekday:'long', month:'short', day:'numeric'});
+    }
+
+    function computeNext(){
+      const ward = areaEl.value; const stream = streamEl.value;
+      const cfg = schedule[ward];
+      let next;
+      if(stream==='bulk') next = nextBulk(cfg.bulk);
+      else next = nextWeekday(cfg[stream]);
+      if(next){
+        resultEl.textContent = `Next ${stream} pickup for Ward ${ward}: ${formatDate(next)}`;
+        addToCalendarBtn.disabled = false;
+        addToCalendarBtn.onclick = ()=> addToCalendar(stream, next);
+      } else {
+        resultEl.textContent = 'No schedule available.';
+        addToCalendarBtn.disabled = true;
+      }
+    }
+
+    document.getElementById('calcBtn').addEventListener('click', computeNext);
+
+    function addToCalendar(stream, date){
+      const title = encodeURIComponent(`${stream} Waste Pickup`);
+      const start = new Date(date);
+      start.setHours(6,0,0);
+      const end = new Date(date);
+      end.setHours(8,0,0);
+      const dt = (d)=> d.toISOString().replace(/[-:]|\.\d{3}/g,'');
+      const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dt(start)}/${dt(end)}&details=Set out the correct bin by 6 AM.&sf=true&output=xml`;
+      window.open(url, '_blank');
+    }
+
+    // Form handling (demo only)
+    const form = document.getElementById('pickupForm');
+    const formMsg = document.getElementById('formMsg');
+    form.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      if(!form.checkValidity()){
+        formMsg.textContent = 'Please fill all required fields correctly.';
+        formMsg.style.color = 'var(--accent)';
+        return;
+      }
+      const data = Object.fromEntries(new FormData(form).entries());
+      formMsg.style.color = 'var(--brand)';
+      formMsg.textContent = `Request received for ${data.type} on ${data.date}. Our team will confirm by SMS.`;
+      form.reset();
+    });
+
+    // Year
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>

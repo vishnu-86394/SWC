@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Impact of Smart Waste Management</title>
+  <meta name="description" content="A single-page, responsive HTML site showing the impact of smart waste management with KPIs, charts, and a simple ROI calculator." />
+  <style>
+    :root{
+      --bg: #0b1017;
+      --panel: #121826;
+      --muted: #93a3b8;
+      --text: #e8eefc;
+      --accent: #52e0a1;
+      --accent-2: #6db7ff;
+      --warn: #ffb86b;
+      --danger: #ff6b6b;
+      --ok: #34d399;
+      --ring: rgba(99,102,241,.35);
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(99,102,241,.18), transparent 60%),
+                  radial-gradient(1000px 500px at 120% 10%, rgba(16,185,129,.15), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      line-height:1.6;
+    }
+    .container{width:min(1100px, 92vw); margin-inline:auto}
+    header{
+      position:relative; overflow:hidden; border-bottom:1px solid rgba(255,255,255,.06);
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0));
+    }
+    .hero{display:grid; grid-template-columns: 1.2fr .8fr; gap:32px; padding:72px 0}
+    h1{font-size: clamp(30px, 4vw, 48px); line-height:1.1; margin:0 0 14px; letter-spacing:.3px}
+    .lead{color:var(--muted); font-size:clamp(15px, 2.1vw, 18px)}
+    .badges{display:flex; flex-wrap:wrap; gap:10px; margin-top:18px}
+    .badge{background:rgba(82,224,161,.12); color:#c9ffe9; border:1px solid rgba(82,224,161,.35); padding:8px 12px; border-radius:999px; font-size:13px}
+    .panel{background:var(--panel); border:1px solid rgba(255,255,255,.06); border-radius:var(--radius); box-shadow:var(--shadow)}
+    .hero-card{padding:22px}
+    .kpis{display:grid; grid-template-columns: repeat(2, 1fr); gap:16px}
+    .kpi{background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.06); padding:16px; border-radius:14px}
+    .kpi .label{color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.12em}
+    .kpi .value{font-size:28px; font-weight:700; margin-top:4px}
+    .cta{display:flex; gap:12px; margin-top:18px}
+    .btn{appearance:none; border:none; cursor:pointer; background:linear-gradient(180deg, var(--accent), #13c48b); color:#082117; font-weight:700; padding:12px 16px; border-radius:12px; box-shadow:0 8px 18px rgba(82,224,161,.25)}
+    .btn.secondary{background:transparent; color:var(--text); border:1px solid rgba(255,255,255,.16); box-shadow:none}
+
+    main{padding-block:40px}
+    section{margin:28px 0}
+    h2{font-size: clamp(22px, 3vw, 30px); margin:0 0 12px}
+    p.section-intro{color:var(--muted); margin-top:0}
+
+    /* Impact Cards */
+    .grid{display:grid; gap:16px}
+    .grid.cols-3{grid-template-columns: repeat(3, 1fr)}
+    .grid.cols-2{grid-template-columns: repeat(2, 1fr)}
+    .card{background:var(--panel); border:1px solid rgba(255,255,255,.06); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); position:relative}
+    .card h3{margin:0 0 8px; font-size:18px}
+    .meta{color:var(--muted); font-size:14px}
+    .tag{display:inline-block; font-size:12px; color:#b7c9ff; border:1px solid rgba(109,183,255,.5); background:rgba(109,183,255,.12); padding:4px 8px; border-radius:999px}
+
+    /* Chart */
+    .chart-wrap{display:grid; grid-template-columns: 1fr 1fr; gap:18px}
+    canvas{width:100%; height:260px; background:rgba(255,255,255,.02); border:1px solid rgba(255,255,255,.06); border-radius:12px}
+
+    /* Timeline */
+    .timeline{position:relative; padding-left:20px}
+    .timeline::before{content:""; position:absolute; left:7px; top:0; bottom:0; width:2px; background:linear-gradient(var(--accent), transparent)}
+    .t-item{position:relative; margin:14px 0; padding-left:14px}
+    .t-item::before{content:""; position:absolute; left:-4px; top:6px; width:12px; height:12px; background:var(--accent); border-radius:999px; box-shadow:0 0 0 3px rgba(82,224,161,.25)}
+
+    /* ROI */
+    .roi{display:grid; grid-template-columns: 1.2fr .8fr; gap:18px}
+    .input{display:flex; flex-direction:column; gap:8px}
+    .input label{font-size:14px; color:var(--muted)}
+    .input input{background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.15); color:var(--text); padding:12px; border-radius:12px}
+    .result{font-size:22px; font-weight:700}
+
+    /* Utilities */
+    .row{display:flex; gap:12px; align-items:center}
+    .right{justify-content:flex-end}
+
+    footer{padding:32px 0; border-top:1px solid rgba(255,255,255,.06); color:var(--muted); text-align:center}
+
+    /* Responsive */
+    @media (max-width: 900px){
+      .hero{grid-template-columns:1fr}
+      .chart-wrap{grid-template-columns:1fr}
+      .grid.cols-3{grid-template-columns:1fr 1fr}
+      .roi{grid-template-columns:1fr}
+    }
+    @media (max-width: 640px){
+      .grid.cols-3{grid-template-columns:1fr}
+      .grid.cols-2{grid-template-columns:1fr}
+    }
+
+    /* Print */
+    @media print{
+      body{background:white; color:black}
+      .panel, .card{box-shadow:none; border-color:#ddd}
+      .btn{display:none}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container hero">
+      <div>
+        <h1>Impact of <span style="background:linear-gradient(90deg,var(--accent),var(--accent-2)); -webkit-background-clip:text; background-clip:text; color:transparent">Smart Waste Management</span></h1>
+        <p class="lead">How sensors, route optimization, and real‑time analytics cut costs, reduce emissions, and keep cities cleaner.</p>
+        <div class="badges">
+          <span class="badge">IoT Bins</span>
+          <span class="badge">AI Routing</span>
+          <span class="badge">Citizen App</span>
+          <span class="badge">Analytics</span>
+        </div>
+        <div class="cta">
+          <button class="btn" onclick="window.print()">Print Summary</button>
+          <a class="btn secondary" href="#roi">Estimate ROI</a>
+        </div>
+      </div>
+      <div class="panel hero-card">
+        <div class="kpis">
+          <div class="kpi">
+            <div class="label">Overflow Reduction</div>
+            <div class="value" data-target="72" data-suffix="%">0%</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Fuel Saved</div>
+            <div class="value" data-target="28" data-suffix="%">0%</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Fewer Trips</div>
+            <div class="value" data-target="35" data-suffix="%">0%</div>
+          </div>
+          <div class="kpi">
+            <div class="label">Recycling Uplift</div>
+            <div class="value" data-target="18" data-suffix="%">0%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section>
+      <h2>Key Impact Areas</h2>
+      <p class="section-intro">These are the outcomes most cities and campuses report after deploying smart waste solutions.</p>
+      <div class="grid cols-3">
+        <article class="card">
+          <h3>Environmental</h3>
+          <p class="meta">Fewer truck miles → lower CO₂ and noise. Better sorting increases material recovery.</p>
+          <ul>
+            <li>10–30% route mileage reduction</li>
+            <li>Improved recycling purity</li>
+            <li>Less landfill methane</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Operational</h3>
+          <p class="meta">Collections triggered by fill‑level, not fixed schedules.</p>
+          <ul>
+            <li>~30–50% fewer unnecessary pickups</li>
+            <li>Predictive maintenance of bins & trucks</li>
+            <li>Live service visibility</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Economic</h3>
+          <p class="meta">Lower fuel, labor, and overflow cleanup costs with faster payback.</p>
+          <ul>
+            <li>15–40% OPEX reduction</li>
+            <li>2–3 year ROI typical</li>
+            <li>Monetize recyclables</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Public Health</h3>
+          <p class="meta">Cleaner streets reduce pests, odor, and fire risks.</p>
+          <ul>
+            <li>Overflow incidents drop sharply</li>
+            <li>Fewer complaints</li>
+            <li>Safer collection routes</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Data & Governance</h3>
+          <p class="meta">Evidence‑based policy and transparent KPIs.</p>
+          <ul>
+            <li>District‑level performance</li>
+            <li>Contractor SLA tracking</li>
+            <li>Open data for citizens</li>
+          </ul>
+        </article>
+        <article class="card">
+          <h3>Community</h3>
+          <p class="meta">Engage residents via notifications, rewards, and simple reporting.</p>
+          <ul>
+            <li>Gamified recycling</li>
+            <li>Quick issue reporting</li>
+            <li>Education campaigns</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section>
+      <h2>Before vs After (Sample Data)</h2>
+      <p class="section-intro">Illustrative KPIs from a city pilot of 1,000 smart bins and dynamic routing.</p>
+      <div class="chart-wrap">
+        <div class="card">
+          <canvas id="barChart" aria-label="Comparison bar chart"></canvas>
+        </div>
+        <div class="card">
+          <h3>Highlights</h3>
+          <ul>
+            <li><strong>Missed pickups</strong> down from 140 → 38 per month</li>
+            <li><strong>Fuel per route</strong> down 22 L → 16 L</li>
+            <li><strong>Overflows</strong> down 95 → 26 / 100 bins</li>
+            <li><strong>Recycling rate</strong> up 19% → 31%</li>
+          </ul>
+          <p class="meta">Your values will vary. Replace the dataset below for your project.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>How It Works</h2>
+      <div class="grid cols-2">
+        <div class="card">
+          <div class="timeline">
+            <div class="t-item"><strong>Smart Bins</strong> send fill level, tilt, and temperature.</div>
+            <div class="t-item"><strong>AI Routing</strong> builds the shortest feasible path.</div>
+            <div class="t-item"><strong>Driver App</strong> guides crews and logs service.</div>
+            <div class="t-item"><strong>Analytics</strong> track KPIs & SLAs in real time.</div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Mini Case Study</h3>
+          <p><em>CampusTown</em> (population 120k) deployed 600 sensors and dynamic routing.</p>
+          <ul>
+            <li>Collections/week cut from 1,850 → 1,120</li>
+            <li>Complaints down 68%</li>
+            <li>Payback achieved in 22 months</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="roi">
+      <h2>Quick ROI Estimator</h2>
+      <p class="section-intro">Approximate annual savings from avoided overflows and reduced mileage.</p>
+      <div class="roi">
+        <div class="card">
+          <div class="input">
+            <label>Number of smart bins</label>
+            <input id="bins" type="number" value="1000" min="1" />
+            <label>Overflow incidents avoided per 100 bins / year</label>
+            <input id="avoided" type="number" value="50" min="0" />
+            <label>Cost per overflow (cleanup + complaints) in ₹</label>
+            <input id="costOverflow" type="number" value="1200" min="0" />
+            <label>Fuel saved per route (liters)</label>
+            <input id="fuel" type="number" value="6" step="0.1" min="0" />
+            <label>Routes per week</label>
+            <input id="routes" type="number" value="300" min="0" />
+            <label>Fuel price (₹/L)</label>
+            <input id="fuelPrice" type="number" value="100" min="0" />
+            <div class="row right">
+              <button class="btn" id="calc">Calculate</button>
+              <button class="btn secondary" id="reset">Reset</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Estimated Annual Savings</h3>
+          <p class="meta">This is a simple model; plug your real numbers for accuracy.</p>
+          <div class="result" id="savings">₹ 0</div>
+          <ul style="margin-top:10px" id="explain"></ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Built for demonstrations. Replace sample numbers with your project KPIs.
+  </footer>
+
+  <script>
+    // KPI counters
+    const counters = document.querySelectorAll('.kpi .value');
+    const animateCounters = () => {
+      counters.forEach(el => {
+        const target = Number(el.dataset.target || 0);
+        const suffix = el.dataset.suffix || '';
+        let current = 0;
+        const step = Math.max(1, Math.round(target / 60));
+        const tick = () => {
+          current = Math.min(target, current + step);
+          el.textContent = current + suffix;
+          if(current < target) requestAnimationFrame(tick);
+        };
+        tick();
+      });
+    };
+    window.addEventListener('load', animateCounters);
+
+    // Simple bar chart without external libraries
+    const chart = document.getElementById('barChart');
+    const ctx = chart.getContext('2d');
+
+    function drawBarChart() {
+      const dpr = window.devicePixelRatio || 1;
+      const width = chart.clientWidth * dpr;
+      const height = chart.clientHeight * dpr;
+      chart.width = width; chart.height = height; // HiDPI
+
+      // Data (Before vs After)
+      const labels = ['Missed pickups', 'Fuel/route (L)', 'Overflows/100 bins', 'Recycling rate %'];
+      const before = [140, 22, 95, 19];
+      const after  = [38, 16, 26, 31];
+
+      const padding = 50 * dpr;
+      const innerW = width - padding*2;
+      const innerH = height - padding*2;
+
+      // Background
+      ctx.clearRect(0,0,width,height);
+      ctx.fillStyle = 'rgba(255,255,255,0.02)';
+      ctx.fillRect(0,0,width,height);
+
+      // Axes
+      ctx.translate(padding, padding);
+      const max = Math.max(...before, ...after) * 1.15;
+
+      ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+      ctx.lineWidth = 1 * dpr;
+      // grid lines
+      const steps = 5;
+      for(let i=0;i<=steps;i++){
+        const y = innerH - (i/steps) * innerH;
+        ctx.beginPath();
+        ctx.moveTo(0,y);
+        ctx.lineTo(innerW,y);
+        ctx.stroke();
+      }
+
+      const groupW = innerW / labels.length;
+      const barW = groupW / 3;
+
+      ctx.textBaseline = 'top';
+      ctx.font = `${12*dpr}px system-ui, sans-serif`;
+      ctx.fillStyle = 'rgba(232,238,252,0.9)';
+
+      labels.forEach((label, i) => {
+        const x0 = i * groupW + barW*0.5;
+        const h1 = (before[i]/max) * innerH;
+        const h2 = (after[i]/max) * innerH;
+
+        // Before (muted blue)
+        ctx.fillStyle = 'rgba(109,183,255,0.65)';
+        ctx.fillRect(x0, innerH - h1, barW, h1);
+
+        // After (accent green)
+        ctx.fillStyle = 'rgba(82,224,161,0.8)';
+        ctx.fillRect(x0 + barW*1.3, innerH - h2, barW, h2);
+
+        // Label
+        ctx.save();
+        ctx.translate(x0, innerH + 6*dpr);
+        ctx.rotate(-0.02);
+        ctx.fillStyle = 'rgba(147,163,184,0.95)';
+        ctx.fillText(label, 0, 0);
+        ctx.restore();
+      });
+
+      // Legend
+      ctx.fillStyle = 'rgba(232,238,252,0.9)';
+      ctx.fillRect(innerW - 160*dpr, 0, 12*dpr, 12*dpr);
+      ctx.fillStyle = 'rgba(147,163,184,1)';
+      ctx.fillText('Before', innerW - 140*dpr, -2*dpr);
+
+      ctx.fillStyle = 'rgba(82,224,161,0.9)';
+      ctx.fillRect(innerW - 160*dpr, 20*dpr, 12*dpr, 12*dpr);
+      ctx.fillStyle = 'rgba(147,163,184,1)';
+      ctx.fillText('After', innerW - 140*dpr, 18*dpr);
+
+      ctx.setTransform(1,0,0,1,0,0); // reset
+    }
+    drawBarChart();
+    window.addEventListener('resize', drawBarChart);
+
+    // ROI estimator logic
+    const fmt = n => '₹ ' + n.toLocaleString(undefined, {maximumFractionDigits:0});
+    function calcROI(){
+      const bins = +document.getElementById('bins').value || 0;
+      const avoided = +document.getElementById('avoided').value || 0; // per 100 bins
+      const costOverflow = +document.getElementById('costOverflow').value || 0;
+      const fuel = +document.getElementById('fuel').value || 0; // liters per route
+      const routes = +document.getElementById('routes').value || 0; // per week
+      const fuelPrice = +document.getElementById('fuelPrice').value || 0;
+
+      const overflowSavings = (bins/100) * avoided * costOverflow;
+      const fuelSavings = fuel * routes * 52 * fuelPrice;
+      const total = Math.max(0, Math.round(overflowSavings + fuelSavings));
+
+      document.getElementById('savings').textContent = fmt(total);
+      const details = [
+        `Overflow cleanup avoided: ${fmt(Math.round(overflowSavings))}`,
+        `Fuel reduction: ${fmt(Math.round(fuelSavings))}`
+      ];
+      const ul = document.getElementById('explain');
+      ul.innerHTML = details.map(d=>`<li>${d}</li>`).join('');
+    }
+    document.getElementById('calc').addEventListener('click', calcROI);
+    document.getElementById('reset').addEventListener('click', () => {
+      ['bins','avoided','costOverflow','fuel','routes','fuelPrice'].forEach(id => document.getElementById(id).value = document.getElementById(id).defaultValue);
+      document.getElementById('savings').textContent = '₹ 0';
+      document.getElementById('explain').innerHTML = '';
+    });
+  </script>
+</body>
+</html>
